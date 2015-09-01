@@ -18,9 +18,12 @@ if (!$esteRecursoDB) {
     //Este se considera un error fatal
     exit;
 }
+$parametros["codigo"] = $_REQUEST['valorConsulta'];
+$parametros["anio"] = substr($_REQUEST['periodo'], 0, 4);
+$parametros["per"] = substr($_REQUEST['periodo'], 5, 1);
 
 //consulta historico
-$cadena_sqlD = $this->sql->cadena_sql("consultarHistorico",$_REQUEST['valorConsulta']); 
+$cadena_sqlD = $this->sql->cadena_sql("consultarHistorico",$parametros); 
 
 $registrosD = $esteRecursoDB->ejecutarAcceso($cadena_sqlD,"busqueda");
 

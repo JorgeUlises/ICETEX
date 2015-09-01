@@ -42,26 +42,26 @@ if (isset($_FILES["excelResolucion"])&&$_FILES["excelResolucion"]['size']<=$maxS
 			exit("Por favor ingrese un archivo valido." . EOL);
 		}
 		$objPHPExcelReader = PHPExcel_IOFactory::load($_FILES["excelResolucion"]["tmp_name"]);
-		$lastRow = $objPHPExcelReader->getActiveSheet()->getHighestRow();
-		for ($i=2;$i<=$lastRow;$i++){
-			$celdaA = $objPHPExcelReader->getActiveSheet()->getCell('A'.$i)->getValue();
-			$celdaB = $objPHPExcelReader->getActiveSheet()->getCell('B'.$i)->getValue();
-			$arr = array($celdaA,$celdaB);
-			
-			if(trim($celdaA)!='0' &&!is_null($celdaA)){
-				
-				array_push($this->listadoCodigos,$arr);
-			}
-				
-			
-		}
+		
+		$permitidos = array('RENOVADOS','LEGALIZADOS');
+		
+		
+		$this->procesarHoja($permitidos[0],$objPHPExcelReader);
+		$this->procesarHoja($permitidos[1],$objPHPExcelReader);
+		
+		
+		
 		
 	}
 }else {
-	echo "documento Invalido";
+	//echo "documento Inválido";
+	$this->miMensaje->addMensaje("24","errorExcel","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	$this->rutaArchivo =false;
 	exit;
 }
+
 
 
 

@@ -30,9 +30,12 @@ if (!$esteRecursoDB) {
 			
 			
 			if($registros!=false){
-				echo '<div style="text-align: center"><p><b>';
-				echo $this->lenguaje->getCadena("errorNoCreaLog");
-				echo "</b></p></div>";
+				//echo '<div style="text-align: center"><p><b>';
+				//echo $this->lenguaje->getCadena("errorNoCreaLog");
+				//echo "</b></p></div>";
+				$this->miMensaje->addMensaje("26","errorNoCreaLog","error");
+				echo $this->miMensaje->getLastMensaje();
+				
 
 			}
 			

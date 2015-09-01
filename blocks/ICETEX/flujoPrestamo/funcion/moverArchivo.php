@@ -39,7 +39,10 @@ if (isset($_FILES["documentoResolucion"])&&$_FILES["documentoResolucion"]['size'
 		
 	}
 }else {
-	echo "documento Invalido";
+	//echo "documento Inválido";
+	$this->miMensaje->addMensaje("17","errorPDF","information");
+	echo $this->miMensaje->getLastMensaje();
+	
 	$this->rutaArchivo =false;
 	exit;
 }

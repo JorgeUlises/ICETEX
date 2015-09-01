@@ -12,11 +12,11 @@ if(!isset($GLOBALS["autorizado"]))
 
 
 //Permisos modulo 68
-$p68 = array(1,2,3,4,5,6,9);
+$p68 = array(0,1,2,3,4,5,6,9);
 //permisos modulo 109
 $p109 = array(7,8,9);
 //permisos modulo 51 y 52 estudiante
-$pE = array(1,3,8);
+$pE = array(0,1,2,3,8);
 
 
 

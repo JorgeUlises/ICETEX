@@ -32,9 +32,12 @@ $registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
 
 
 if($registros!=false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoCancela");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoCancela");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("25","errorNoCancela","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
 

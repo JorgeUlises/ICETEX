@@ -122,6 +122,21 @@ if(!isset($GLOBALS["autorizado"]))
 					$variable.="&tiempo=".time();
 				
 					break;
+					
+					case "gestionRecuperarClave":
+						$nuevoArray = array();
+						foreach ($_REQUEST as $idx => $val){
+							if($idx!="datos"&&$idx!="pagina"&&$idx!="opcion")
+								$nuevoArray[$idx] = $_REQUEST[$idx] ;
+						}
+					
+						$variable = http_build_query($nuevoArray);
+					
+						$variable.="&pagina=gestionRecuperarClave";
+						$variable.="&redireccionar=true";
+						$variable.="&tiempo=".time();
+					
+						break;
 
 		case "paginaPrincipal":
 			$variable="pagina=index";

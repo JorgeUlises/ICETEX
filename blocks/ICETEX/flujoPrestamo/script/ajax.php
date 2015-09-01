@@ -80,6 +80,16 @@ $cadenaACodificar13=$cadenaACodificar."&funcion=filtrarDeudas";
 $cadena13=$this->miConfigurador->fabricaConexiones->crypto->codificar_url($cadenaACodificar13,$enlace);
 
 
+$cadenaACodificar14=$cadenaACodificar."&funcion=solicitarCreditoEstudiante";
+$cadena14=$this->miConfigurador->fabricaConexiones->crypto->codificar_url($cadenaACodificar14,$enlace);
+
+$cadenaACodificar15=$cadenaACodificar."&funcion=cancelarCreditoEstudiante";
+$cadena15=$this->miConfigurador->fabricaConexiones->crypto->codificar_url($cadenaACodificar15,$enlace);
+
+$cadenaACodificar16=$cadenaACodificar."&funcion=editarDeudas&metodo=operacion&divRespuesta=resultadoUsuario";
+$cadena16=$this->miConfigurador->fabricaConexiones->crypto->codificar_url($cadenaACodificar16,$enlace);
+
+
 $urlObtenerListaElementos = $url.$cadena1;
 $urlObtenerNuevoElemento = $url.$cadena2;
 $urlCambiarEstadoElemento = $url.$cadena4;
@@ -90,6 +100,25 @@ $urlConsultarDeudasUsuario=$url.$cadena10;
 ?>
 
 <script type='text/javascript'>
+
+
+function consultarSeleccionUsuario(id, opt, tipo, cod){
+	var data = "opcionConsulta=codigo&valorConsulta="+cod;
+	if (opt ==1) data =  data + "&soloConsulta=true";
+	data+="&periodo="+$("select[name=periodo]").val();
+	$.ajax({
+        url: "<?php echo $url;?>",
+        data: "<?php echo $cadena16?>&"+data,
+        type:"post",
+        dataType: "html",
+        success: function(jresp){
+        	var resultado = document.getElementById("resultadoUsuario");
+        	resultado.innerHTML = jresp;;
+	       }
+    });
+ 
+
+}
 
 
 
@@ -115,6 +144,12 @@ $urlConsultarDeudasUsuario=$url.$cadena10;
         
 	}
 
+	function cancelarCreditoEstudianteEntrada(){
+
+		var edicion = document.getElementById("edicion");
+		edicion.innerHTML = '<div>Usted no puede realizar este proceso sin antes tener un crédito aprobado por el ICETEX</div>';
+	}
+
 	function mensajeComienzo(val){
 		
 		$.ajax({
@@ -136,11 +171,13 @@ $urlConsultarDeudasUsuario=$url.$cadena10;
         
 	}
 	
-	function solicitarCreditoEstudiante(val){
-			
+	function solicitarCreditoEstudiante(val, periodo){
+		var txt;
+		var r = confirm("¿Esta usted seguro de tener un crédito aprobado por el ICETEX?");
+		if (r == true) {
 			$.ajax({
 	            url: "<?php echo $url;?>",
-	            data: "<?php echo $cadena1?>"+"&valorConsulta="+val,
+	            data: "<?php echo $cadena14?>"+"&valorConsulta="+val+"&periodo="+periodo,
 	            type:"post",
 	            dataType: "html",
 	            success: function(jresp){
@@ -153,10 +190,35 @@ $urlConsultarDeudasUsuario=$url.$cadena10;
 	            	
 			       }
 	        });
+		} 
+			
 	
 		
 	        
 		}
+	function cancelarCreditoEstudiante(val, periodo){
+		
+		$.ajax({
+            url: "<?php echo $url;?>",
+            data: "<?php echo $cadena15?>"+"&valorConsulta="+val+"&periodo="+periodo,
+            type:"post",
+            dataType: "html",
+            success: function(jresp){
+               
+            	if( jresp.substring(jresp.length , jresp.length-4) =="true" ) consultarUsuario();
+                else{
+                	var edicion = document.getElementById("resultadoCredito");
+            		edicion.innerHTML = jresp;
+                }	
+            	
+		       }
+        });
+
+	
+        
+	}
+
+	
 
 	function cancelarCredito(val){
 			
@@ -204,11 +266,11 @@ $urlConsultarDeudasUsuario=$url.$cadena10;
 
 	
 
-	function registroReintegro(val){
+	function registroReintegro(val,periodo){
 			
 			$.ajax({
 	            url: "<?php echo $url;?>",
-	            data: "<?php echo $cadena5?>"+"&valorConsulta="+val,
+	            data: "<?php echo $cadena5?>"+"&valorConsulta="+val+"&periodo="+periodo,
 	            type:"post",
 	            dataType: "html",
 	            success: function(jresp){
@@ -259,6 +321,7 @@ $urlConsultarDeudasUsuario=$url.$cadena10;
 	            success: function(jresp){
 	            	var div = document.getElementById("rconsultas");
 	            	div.innerHTML =jresp;
+	            	$("#formularioResolucion")[0].reset();
 	            		
 			       }
 	        });
@@ -267,20 +330,22 @@ $urlConsultarDeudasUsuario=$url.$cadena10;
 		
 	}
 
-	function enviarMarca(){
+	function enviarMarca(val){
 		if($("#formularioResolucion").validationEngine('validate')!=false){
 			var div = document.getElementById("rconsultas");
 			div.innerHTML = '<div id="loading"></div>';
 			var file1 = document.getElementById("excelMarca");
+			//var val = document..getSelection("periodo");
 			
 			var data = new FormData();
 			
 			data.append("excelMarca", file1.files[0]);
-			
+			data.append("periodo",val)
 			
 			$.ajax({
 	            url: "<?php echo $url.$cadena11;?>",
 	            data:data,
+				    
 	            type:"post",
 	            dataType: "html",
 	            contentType: 'multipart/form-data', 
@@ -359,12 +424,12 @@ $urlConsultarDeudasUsuario=$url.$cadena10;
 
 
 
-		function consultarHistorico(val){
+		function consultarHistorico(val,val2){
 				
 					
 					$.ajax({
 				    url: "<?php echo $url;?>",
-				    data: "<?php echo $cadena7?>"+"&valorConsulta="+val,
+				    data: "<?php echo $cadena7?>"+"&valorConsulta="+val+"&periodo="+val2,
 				    type:"post",
 				    dataType: "html",
 				    success: function(jresp){

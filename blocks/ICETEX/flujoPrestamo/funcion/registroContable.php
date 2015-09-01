@@ -30,6 +30,8 @@ $parametros['R6'] = $_REQUEST['R6'];
 $parametros['tipo'] = $_REQUEST['tipo'];
 $parametros['numero'] = $_REQUEST['numero'];
 $parametros['observaciones'] = $_REQUEST['observaciones'];
+$parametros['anio'] = substr($_REQUEST['periodo'], 0, 4);
+$parametros['per'] = substr($_REQUEST['periodo'], 5, 1);
 
 
 if($_REQUEST['tipo']=='DEVOLUCION'){
@@ -44,9 +46,12 @@ $registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
 
 
 if($registros!=false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorRegistroContable");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorRegistroContable");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("26","errorRegistroContable","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
 

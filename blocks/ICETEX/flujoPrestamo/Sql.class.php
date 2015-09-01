@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 if(!isset($GLOBALS["autorizado"])) {
 	include("../index.php");
@@ -31,7 +31,6 @@ class SqlflujoPrestamo extends sql {
 		
 		$prefijo=$this->miConfigurador->getVariableConfiguracion("prefijo");
 		$idSesion=$this->miConfigurador->getVariableConfiguracion("id_sesion");
-		 
 		switch($tipo) {
 			 
 			/**
@@ -179,15 +178,22 @@ class SqlflujoPrestamo extends sql {
 				break;
 				
 			case "consultarPagoReferenciaMatricula":
-				$cadena_sql=" SELECT EMA_EST_COD , EMA_PAGO , AER_REFCOD , AER_VALOR, REB_REFNOM , REB_REFDES , EMA_SECUENCIA  , EMA_OBS FROM ACESTMAT ";
+				$cadena_sql=" SELECT EMA_EST_COD , EMA_PAGO , EMA_VALOR , AER_REFCOD , AER_VALOR, REB_REFNOM , REB_REFDES , EMA_SECUENCIA  , EMA_OBS FROM ACESTMAT ";
 				$cadena_sql.=" LEFT JOIN ACREFEST ON AER_SECUENCIA = EMA_SECUENCIA ";
 				$cadena_sql.=" LEFT JOIN ACREFBAN ON  REB_REFCOD = AER_REFCOD ";
-				$cadena_sql.=" WHERE EMA_ANO = to_char(sysdate,'YYYY') ";
-				$cadena_sql.=" AND EMA_PER = (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ) ";
+				$cadena_sql.=" WHERE EMA_ANO = ".$variable['anio']." ";
+				$cadena_sql.=" AND EMA_PER = ".$variable['per']." ";
 				$cadena_sql.=" AND EMA_ESTADO = 'A' ";
-				$cadena_sql.=" AND EMA_EST_COD = ".$variable." ";
+				$cadena_sql.=" AND EMA_EST_COD = ".$variable['codigo']." ";
 				$cadena_sql.=" AND REB_REFNOM = 'MATRICULA' ";
-				$cadena_sql.=" AND AER_ANO  = to_char(sysdate,'YYYY') ";
+				$cadena_sql.=" AND AER_ANO  = ".$variable['anio']." ";
+				$cadena_sql.=" AND EMA_VALOR > 0 ";
+				
+				break;
+				
+			case "consultarTextoNotificacion":
+				$cadena_sql = 'SELECT CRE_TEXTO FROM CREDITO_TEXTOS_NOTIFICACION ';
+                $cadena_sql .= ' WHERE CRE_NOMBRE = \'notificarEstudiante\''; 
 				break;
 					
 				
@@ -203,16 +209,17 @@ class SqlflujoPrestamo extends sql {
 					$cadena_sql.=' A."CRE_FECHA_ACTUALIZACION"';
 					$cadena_sql.=' FROM CREDITO_ESTADO_ESTUDIANTES A , CREDITO_ESTADO_FLUJO B';
 					$cadena_sql.=' WHERE A."CRE_ESTADO" = B."ID_ESTADO_FLUJO"';
-					$cadena_sql.=' AND A."CRE_EST_COD"='.$variable;
-					$cadena_sql.=' AND A."CRE_ANO"='.date("Y");
-					$cadena_sql.=" AND A.CRE_PERIODO=(SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A')";
+					$cadena_sql.=' AND A."CRE_EST_COD"='.$variable['codigo'];
+					$cadena_sql.=' AND A."CRE_ANO"='.$variable['anio'];
+					$cadena_sql.=" AND A.CRE_PERIODO=".$variable['per'];
+					$cadena_sql.=" ORDER BY A.CRE_FECHA_ACTUALIZACION DESC";
 						
 					break;
 					
 			case "consultarCreditoAprobadoReintegro":
 				$cadena_sql=" SELECT CRE_APROVADO , CRE_REINTEGRO FROM CREDITO_RESOLUCION ";
 				$cadena_sql.=" WHERE CRE_EST_COD = ".$variable;
-				$cadena_sql.=" AND CRE_ANO = to_char(sysdate,'YYYY') ";
+				$cadena_sql.=" AND CRE_ANO = (SELECT APE_ANO FROM ACASPERI WHERE APE_ESTADO = 'A') ";
 				$cadena_sql.=" AND CRE_PERIODO = (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ) ";
 				
 				break;
@@ -220,7 +227,7 @@ class SqlflujoPrestamo extends sql {
 			case "aprobarCredito":
 				$cadena_sql=" INSERT INTO CREDITO_RESOLUCION (CRE_EST_COD, CRE_ANO , CRE_PERIODO , CRE_APROVADO , CRE_REINTEGRO , CRE_FECHA) VALUES ( ";
 				$cadena_sql.=" ".$variable['codigo'].", ";
-				$cadena_sql.=" to_char(sysdate,'YYYY'), (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ), '".$variable['aprobado']."', 'N', sysdate ";
+				$cadena_sql.=" '".$variable['anio']."', '".$variable['per']."', '".$variable['aprobado']."', 'N', sysdate ";
 				$cadena_sql.=" ) ";
 				break;
 				
@@ -231,32 +238,52 @@ class SqlflujoPrestamo extends sql {
 				$cadena_sql.=" WHERE ";
 				$cadena_sql.=" EMA_EST_COD =  ".$variable['codigo']." ";
 				$cadena_sql.=" AND EMA_SECUENCIA = ".$variable['secuencia']." ";
+				$cadena_sql.=" AND EMA_ANO = ".$variable['anio']." ";
+				$cadena_sql.=" AND EMA_PER = ".$variable['per']." ";
+				break;
+				
+			case "consultarCodigoIdentificacion":
+				$cadena_sql=" SELECT DISTINCT EMA_EST_COD FROM ACEST A , ACESTMAT B ";
+				$cadena_sql.=" WHERE A.EST_NRO_IDEN = ".$variable['identificacion']." ";
+				$cadena_sql.=" AND B.EMA_EST_COD = A.EST_COD ";
+				$cadena_sql.=" AND B.EMA_ANO = ".$variable['anio']." ";
+				$cadena_sql.=" AND B.EMA_PER = ".$variable['per']." ";
+				break;
+			
+			case "consultarIdentificacionCodigo":
+				$cadena_sql=" SELECT DISTINCT A.EST_NRO_IDEN FROM ACEST A , ACESTMAT B ";
+				$cadena_sql.=" WHERE EMA_EST_COD = ".$variable['codigo']." ";
+				$cadena_sql.=" AND B.EMA_EST_COD = A.EST_COD ";
+				$cadena_sql.=" AND B.EMA_ANO = ".$variable['anio']." ";
+				$cadena_sql.=" AND B.EMA_PER = ".$variable['per']." ";
 				break;
 				
 			case "registroResolucion":
 				$cadena_sql=" UPDATE CREDITO_RESOLUCION SET ";
+				$cadena_sql.=" CRE_MODALIDAD = '".$variable['modalidadCredito']."', ";
+				$cadena_sql.=" CRE_FECHA_INGRESO = to_date('".$variable['fechaCredito']."','DD/MM/YY'), ";
 				$cadena_sql.=" CRE_RESOLUCION = '".$variable['resolucion']."', ";
 				$cadena_sql.=" CRE_VALOR_TOTAL = ".$variable['valorTotal'].", ";
 				$cadena_sql.=" CRE_VALOR_INDIVIDUAL = ".$variable['valorIndividual'].", ";
 				$cadena_sql.=" CRE_DOCUMENTO = '".$variable['archivo']."' ";
 				$cadena_sql.=" WHERE CRE_EST_COD = ".$variable['codigo']." ";
-				$cadena_sql.=" AND CRE_ANO = to_char(sysdate,'YYYY') ";
-				$cadena_sql.=" AND CRE_PERIODO = (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ) ";
+				$cadena_sql.=" AND CRE_ANO = ".$variable['anio']." ";
+				$cadena_sql.=" AND CRE_PERIODO = ".$variable['per']." ";
 				break;
 			
 			case "actualizaNotificado":
 				$cadena_sql=" UPDATE CREDITO_RESOLUCION SET ";
 				$cadena_sql.=" CRE_NOTIFICADO = '".$variable['notificado']."' ";
 				$cadena_sql.=" WHERE CRE_EST_COD = ".$variable['codigo']." ";
-				$cadena_sql.=" AND CRE_ANO = to_char(sysdate,'YYYY') ";
-				$cadena_sql.=" AND CRE_PERIODO = (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ) ";
+				$cadena_sql.=" AND CRE_ANO = ".$variable['anio']." ";
+				$cadena_sql.=" AND CRE_PERIODO = ".$variable['per']." ";
 				break;
 				
 			case "actualizaReintegro":
 				$cadena_sql=" UPDATE CREDITO_RESOLUCION SET ";
 				$cadena_sql.=" CRE_REINTEGRO = 'S' ";
 				$cadena_sql.=" WHERE CRE_EST_COD = ".$variable." ";
-				$cadena_sql.=" AND CRE_ANO = to_char(sysdate,'YYYY') ";
+				$cadena_sql.=" AND CRE_ANO = (SELECT APE_ANO FROM ACASPERI WHERE APE_ESTADO = 'A') ";
 				$cadena_sql.=" AND CRE_PERIODO = (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ) ";
 				break;
 				
@@ -270,7 +297,7 @@ class SqlflujoPrestamo extends sql {
 			case "creaFlujo":
 				$cadena_sql=" INSERT INTO  CREDITO_ESTADO_ESTUDIANTES (CRE_EST_COD , CRE_ANO , CRE_PERIODO , CRE_ESTADO , CRE_FECHA_CREACION , CRE_FECHA_ACTUALIZACION)  VALUES ( ";
 				$cadena_sql.=" ".$variable['codigo'].", ";
-				$cadena_sql.=" to_char(sysdate,'YYYY'),(SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ), ";
+				$cadena_sql.=" ".$variable['anio'].",".$variable['per'].", ";
 				$cadena_sql.=" ".$variable['estado'].", ";
 				$cadena_sql.=" sysdate,sysdate ";
 				$cadena_sql.=" ) ";
@@ -281,15 +308,15 @@ class SqlflujoPrestamo extends sql {
 				$cadena_sql.=" CRE_FECHA_ACTUALIZACION = sysdate , ";
 				$cadena_sql.=" CRE_ESTADO = ".$variable['estado']." ";
 				$cadena_sql.=" WHERE CRE_EST_COD = ".$variable['codigo']." ";
-				$cadena_sql.=" AND CRE_ANO = to_char(sysdate,'YYYY') ";
-				$cadena_sql.=" AND CRE_PERIODO = (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ) ";
+				$cadena_sql.=" AND CRE_ANO = ".$variable['anio']." ";
+				$cadena_sql.=" AND CRE_PERIODO = ".$variable['per']." ";
 				break;
 					
 			case "consultarRecibosCreados":
 				$cadena_sql=" SELECT EMA_SECUENCIA, EMA_PAGO   FROM ACESTMAT ";
-				$cadena_sql.=" WHERE EMA_ANO = to_char(sysdate, 'YYYY') ";
-				$cadena_sql.=" AND EMA_PER = (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A') ";
-				$cadena_sql.=" AND EMA_EST_COD = '".$variable."'";
+				$cadena_sql.=" WHERE EMA_ANO = ".$variable['anio'];
+				$cadena_sql.=" AND EMA_PER = ".$variable['per'];
+				$cadena_sql.=" AND EMA_EST_COD = '".$variable['codigo']."'";
 				$cadena_sql.=" AND EMA_ESTADO = 'A'";
 				break;
 				
@@ -297,9 +324,9 @@ class SqlflujoPrestamo extends sql {
 				$cadena_sql=" SELECT SUM(EMA_VALOR), SUM(EMA_EXT) ";
 				$cadena_sql.=" FROM ACESTMAT ";
 				$cadena_sql.=" WHERE ";
-				$cadena_sql.=" ema_ano = to_char(sysdate, 'YYYY') ";
-				$cadena_sql.=" AND ema_est_cod = '".$variable."' ";
-				$cadena_sql.=" AND EMA_PER = (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A') ";
+				$cadena_sql.=" ema_ano = ".$variable['anio']." ";
+				$cadena_sql.=" AND ema_est_cod = '".$variable['codigo']."' ";
+				$cadena_sql.=" AND EMA_PER = ".$variable['per']." ";
 				$cadena_sql.=" AND EMA_ESTADO = 'A'";
 				$cadena_sql.=" GROUP BY EMA_EST_COD ";
 				break;
@@ -308,7 +335,7 @@ class SqlflujoPrestamo extends sql {
 				$cadena_sql=" SELECT TO_CHAR(EMA_FECHA_ORD,'DD/MM/YYYY') , TO_CHAR(EMA_FECHA_EXT,'DD/MM/YYYY'), EMA_CRA_COD , EMA_ANO_PAGO , EMA_PER_PAGO ";
 				$cadena_sql.=" FROM ACESTMAT ";
 				$cadena_sql.=" WHERE ";
-				$cadena_sql.=" ema_ano = to_char(sysdate, 'YYYY') ";
+				$cadena_sql.=" ema_ano = (SELECT APE_ANO FROM ACASPERI WHERE APE_ESTADO = 'A') ";
 				$cadena_sql.=" AND ema_est_cod = '".$variable."' ";
 				$cadena_sql.=" AND EMA_PER = (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A') ";
 				$cadena_sql.=" AND EMA_ESTADO = 'A'";
@@ -320,17 +347,17 @@ class SqlflujoPrestamo extends sql {
 				$cadena_sql.=" INNER JOIN ACREFBAN ON  REB_REFCOD = AER_REFCOD "; 
 				$cadena_sql.=" WHERE AER_SECUENCIA IN ( "; 
 				$cadena_sql.=" SELECT EMA_SECUENCIA FROM ACESTMAT "; 
-				$cadena_sql.=" WHERE EMA_ANO = to_char(sysdate,'YYYY') ";
+				$cadena_sql.=" WHERE EMA_ANO = (SELECT APE_ANO FROM ACASPERI WHERE APE_ESTADO = 'A') ";
 				$cadena_sql.=" AND EMA_PER = (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ) ";
 				$cadena_sql.=" AND EMA_EST_COD = ".$variable." ";
 				$cadena_sql.=" AND EMA_ESTADO = 'A' ";
 				$cadena_sql.=" ) AND REB_REFNOM !='MATRICULA' ";
-				$cadena_sql.="  AND AER_ANO = to_char(sysdate,'YYYY')";
+				$cadena_sql.="  AND AER_ANO = (SELECT APE_ANO FROM ACASPERI WHERE APE_ESTADO = 'A')";
 				break;
 				
 			case "desactivarRecibos":
 				$cadena_sql=" UPDATE ACESTMAT SET EMA_ESTADO = 'I' ";
-				$cadena_sql.=" WHERE EMA_ANO = to_char(sysdate, 'YYYY') ";
+				$cadena_sql.=" WHERE EMA_ANO = (SELECT APE_ANO FROM ACASPERI WHERE APE_ESTADO = 'A') ";
 				$cadena_sql.=" AND EMA_PER = (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A') ";
 				$cadena_sql.=" AND EMA_EST_COD = '".$variable."' ";
 				$cadena_sql.=" AND EMA_ESTADO = 'A'";
@@ -345,7 +372,7 @@ class SqlflujoPrestamo extends sql {
 				$cadena_sql.=" ".$variable['proyectoCurricular']." , ";
 				$cadena_sql.=" 0 , ";
 				$cadena_sql.=" 0, ";
-				$cadena_sql.=" to_char(sysdate,'YYYY'),(SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ),sysdate,'A', SEQ_MATRICULA.NEXTVAL,1, ";
+				$cadena_sql.=" (SELECT APE_ANO FROM ACASPERI WHERE APE_ESTADO = 'A'),(SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ),sysdate,'A', SEQ_MATRICULA.NEXTVAL,1, ";
 				$cadena_sql.=" to_date('".$variable['fechaOrdinaria']."','DD/MM/YYYY'), ";
 				$cadena_sql.=" to_date('".$variable['fechaExtraOrdinaria']."','DD/MM/YYYY'), ";
 				$cadena_sql.=" 0,'N', ";
@@ -358,7 +385,7 @@ class SqlflujoPrestamo extends sql {
 				
 			case "separarMatriculaSeguroReferencia":
 				$cadena_sql=" INSERT INTO ACREFEST (AER_ANO , AER_SECUENCIA , AER_BANCOD , AER_REFCOD , AER_VALOR) VALUES ( ";
-				$cadena_sql.=" to_char(sysdate,'YYYY'), ";
+				$cadena_sql.=" (SELECT APE_ANO FROM ACASPERI WHERE APE_ESTADO = 'A'), ";
 				$cadena_sql.=" SEQ_MATRICULA.CURRVAL,".$variable['referenciaBancoSeguro'].",".$variable['referenciaSeguro'].", ";
 				$cadena_sql.=" ".$variable['valorSeguro']." ";
 				$cadena_sql.=" ) ";
@@ -373,7 +400,7 @@ class SqlflujoPrestamo extends sql {
 				$cadena_sql.=" ".$variable['proyectoCurricular']." , ";
 				$cadena_sql.=" ".$variable['valorOrdinaria']." , ";
 				$cadena_sql.=" ".$variable['valorExtraOrdinaria'].", ";
-				$cadena_sql.=" to_char(sysdate,'YYYY'),(SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ),sysdate,'A', SEQ_MATRICULA.NEXTVAL,1, ";
+				$cadena_sql.=" (SELECT APE_ANO FROM ACASPERI WHERE APE_ESTADO = 'A'),(SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ),sysdate,'A', SEQ_MATRICULA.NEXTVAL,1, ";
 				$cadena_sql.=" to_date('".$variable['fechaOrdinaria']."','DD/MM/YYYY'), ";
 				$cadena_sql.=" to_date('".$variable['fechaExtraOrdinaria']."','DD/MM/YYYY'), ";
 				$cadena_sql.=" 0,'N', ";
@@ -386,7 +413,7 @@ class SqlflujoPrestamo extends sql {
 				
 			case "separarMatriculaNoSeguroReferencia":
 				$cadena_sql=" INSERT INTO ACREFEST (AER_ANO , AER_SECUENCIA , AER_BANCOD , AER_REFCOD , AER_VALOR) VALUES ( ";
-				$cadena_sql.=" to_char(sysdate,'YYYY'), ";
+				$cadena_sql.=" (SELECT APE_ANO FROM ACASPERI WHERE APE_ESTADO = 'A'), ";
 				$cadena_sql.=" SEQ_MATRICULA.CURRVAL,".$variable['referenciaBancoMatricula'].",".$variable['referenciaMatricula'].", ";
 				$cadena_sql.=" ".$variable['valorOrdinaria']." ";
 				$cadena_sql.=" ) ";
@@ -424,7 +451,7 @@ class SqlflujoPrestamo extends sql {
 				$cadena_sql.=" CRE_TIPO, CRE_RADICADO, CRE_OBSERVACIONES, CRE_FECHA_REGISTRO) "; 
 				$cadena_sql.=" VALUES ( ";
 				$cadena_sql.=" ".$variable['codigo'].", ";
-				$cadena_sql.=" to_char(sysdate,'YYYY'), (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ), ";
+				$cadena_sql.=" (SELECT APE_ANO FROM ACASPERI WHERE APE_ESTADO = 'A'), (SELECT APE_PER FROM ACASPERI WHERE APE_ESTADO = 'A' ), ";
 				$cadena_sql.=" '".$variable['cuentaICETEX']."', ";
 				$cadena_sql.=" '".$variable['cuentaFacultad']."', ";
 				$cadena_sql.="  '".$variable['nitFacultad']."', ";
@@ -444,8 +471,19 @@ class SqlflujoPrestamo extends sql {
 				$cadena_sql.=" FROM CREDITO_ESTADO_ESTUDIANTES A "; 
 				$cadena_sql.=" LEFT JOIN CREDITO_RESOLUCION B ON ";
 				$cadena_sql.=" A.CRE_EST_COD = B.CRE_EST_COD AND A.CRE_ANO = B.CRE_ANO AND A.CRE_PERIODO = B.CRE_PERIODO ";
-				$cadena_sql.=" WHERE A.CRE_EST_COD =  ".$variable;
+				$cadena_sql.=" WHERE A.CRE_EST_COD =  ".$variable['codigo'];
+				$cadena_sql.=" AND A.CRE_ANO =  ".$variable['anio'];
+				$cadena_sql.=" AND A.CRE_PERIODO =  ".$variable['per'];
 				
+				break;
+				
+			case "consultarValorIndividualPeriodo":
+				$cadena_sql=" SELECT ";
+				$cadena_sql.=" CRE_VALOR_INDIVIDUAL ";
+				$cadena_sql.=" FROM CREDITO_RESOLUCION ";
+				$cadena_sql.=" WHERE CRE_EST_COD = ".$variable['codigo']." ";
+				$cadena_sql.=" AND CRE_ANO = ".$variable['anio']." ";
+				$cadena_sql.=" AND CRE_PERIODO = ".$variable['per']." ";
 				break;
 		
 
@@ -487,12 +525,63 @@ class SqlflujoPrestamo extends sql {
 		  	break;
 		  	
 		  
+                case "periodoActualYAnterior":
+		  	$cadena_sql=' SELECT ape_ano||\'-\'||ape_per as PERIODO  ';
+		  	$cadena_sql.='FROM acasperi WHERE ape_Estado IN (\'A\',\'P\') ORDER BY PERIODO DESC';
+		  	break;
 		
+                case "listadoPeriodos":
+		  	$cadena_sql=' SELECT ape_ano||\'-\'||ape_per as PERIODO  ';
+		  	$cadena_sql.='FROM acasperi WHERE ape_ano>=2014 ORDER BY PERIODO DESC';
+		  	break;
 		
+                case "periodoActual":
+		  	$cadena_sql=" SELECT ape_ano||'-'||ape_per as PERIODO,  ";
+		  	$cadena_sql.=" ape_ano as ANIO,";
+		  	$cadena_sql.=" ape_per as PER  ";
+		  	$cadena_sql.=" FROM acasperi WHERE ape_estado='A' ";
+		  	break;
+		
+                case "consultarResolucionCredito":
+		  	$cadena_sql=' SELECT CRE_RESOLUCION, CRE_VALOR_INDIVIDUAL, CRE_FECHA ';
+		  	$cadena_sql.=' FROM CREDITO_RESOLUCION ';
+		  	$cadena_sql.=' WHERE CRE_ANO='.$variable['anio'].' ';
+		  	$cadena_sql.=' AND CRE_PERIODO='.$variable['per'].' ';
+		  	$cadena_sql.=' AND CRE_EST_COD='.$variable['codigo'].' ';
+		  	break;
+		  	
+           case "consultarEmailNombre":
+           	   $cadena_sql=" 	SELECT \"CRE_EMAIL\" FROM \"CREDITO_CORREO\" ";
+           	   $cadena_sql.=" 	WHERE \"CRE_NOMBRE\" = '".$variable."'";
+           	
+                	break;
+		  	
+            case "consultarDatosTotalesCredito":
+               	$cadena_sql=" 	SELECT B.EST_NRO_IDEN IDENTIFICACION ";
+                $cadena_sql.=" 	, B.EST_NOMBRE NOMBRE ";
+                $cadena_sql.=" 	, B.EST_COD CODIGO ";
+                $cadena_sql.=" 	, C.CRA_NOMBRE CARRERA ";
+                $cadena_sql.=" 	, D.DEP_NOMBRE FACULTAD ";
+                $cadena_sql.=" 	, A.ema_ano||'.'||A.EMA_PER PERIODO , E.CRE_RESOLUCION ";
+                $cadena_sql.=" 	, SUM(A.EMA_VALOR) MATRICULA ";
+                $cadena_sql.=" 	, E.CRE_VALOR_INDIVIDUAL ";
+                $cadena_sql.="  , (SUM(A.EMA_VALOR) -  E.CRE_VALOR_INDIVIDUAL ) DIFERENCIA ";
+                $cadena_sql.=" FROM ACESTMAT  A, ACEST B , ACCRA C , GEDEP D , CREDITO_RESOLUCION E ";
+                $cadena_sql.=" WHERE ";
+                $cadena_sql.=" A.ema_ano = ".$variable['anio'];
+                $cadena_sql.=" AND A.ema_est_cod = '".$variable['codigo']."' ";
+                $cadena_sql.=" AND A.EMA_PER = ".$variable['per']." ";
+                $cadena_sql.=" AND A.EMA_ESTADO = 'A' ";
+                $cadena_sql.=" AND A.ema_est_cod =  B.EST_COD ";
+                $cadena_sql.=" AND C.CRA_COD = B.EST_CRA_COD ";
+                $cadena_sql.=" AND C.CRA_DEP_COD = D.DEP_COD ";
+                $cadena_sql.=" AND B.EST_COD = E.CRE_EST_COD ";
+                $cadena_sql.=" GROUP BY A.EMA_EST_COD ,  B.EST_NRO_IDEN, B.EST_NOMBRE, C.CRA_NOMBRE,B.EST_COD, D.DEP_NOMBRE, A.ema_ano,A.EMA_PER, E.CRE_RESOLUCION ";
+                $cadena_sql.=" , E.CRE_VALOR_INDIVIDUAL ,E.CRE_VALOR_INDIVIDUAL ";
+                	break;
 
 		}
 		
-
 		return $cadena_sql;
 
 	}

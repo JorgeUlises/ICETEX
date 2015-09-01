@@ -27,12 +27,14 @@ $registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
 
 
 if($registros!=false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoDesactivar");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoDesactivar");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("9","errorNoDesactivar","error");
+	echo $this->miMensaje->getLastMensaje();
 	exit;
 }
-$this->registroLog('INACTIV '.$_REQUEST['valorConsulta']);
+$this->registroLog('INACTIVAR RECIBO '.$_REQUEST['valorConsulta']);
 return true;
 
 

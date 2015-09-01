@@ -23,7 +23,11 @@ $upload_dir = $this->ruta."/uploads/";
 
 
 if(!isset($_FILES["excelMarca"]) )		{
-	echo $this->lenguaje->getCadena("errorExcelMarca");
+	//echo $this->lenguaje->getCadena("errorExcelMarca");
+	
+	$this->miMensaje->addMensaje("45","errorExcelMarca","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
 
@@ -47,6 +51,8 @@ if (isset($_FILES["excelMarca"])&&$_FILES["excelMarca"]['size']<=$maxSize
 			$celdaA = $objPHPExcelReader->getActiveSheet()->getCell('A'.$i)->getValue();
 			
 			if(trim($celdaA)!='0' &&!is_null($celdaA)){
+				$celdaA = $this->identificacionACodigo($celdaA);
+			
 				$arr = array($celdaA);
 				array_push($this->listadoCodigos,$arr);
 				
@@ -57,7 +63,10 @@ if (isset($_FILES["excelMarca"])&&$_FILES["excelMarca"]['size']<=$maxSize
 		
 	}
 }else {
-	echo "documento Invalido";
+	//echo "documento Inválido";
+	$this->miMensaje->addMensaje("24","errorExcel","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	$this->rutaArchivo =false;
 	exit;
 }

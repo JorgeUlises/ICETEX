@@ -20,19 +20,20 @@ if (!$esteRecursoDB) {
 }
 
 //Asigna Variables
-$parametro = array();
-$parametro['codigo'] = $_REQUEST['valorConsulta'];
-$parametro['estado'] = $this->estado;
+$parametros = array();
+$parametros['codigo'] = $_REQUEST['valorConsulta'];
+$parametros['estado'] = $this->estado;
+$parametros["anio"] = substr($_REQUEST['periodo'], 0, 4);
+$parametros["per"] = substr($_REQUEST['periodo'], 5, 1);
+$cadena_sqlD = $this->sql->cadena_sql("consultarEstadoFlujo",$parametros);
 
-
-$cadena_sqlD = $this->sql->cadena_sql("consultarEstadoFlujo",$_REQUEST['valorConsulta']);
 $registrosD = $esteRecursoDB->ejecutarAcceso($cadena_sqlD,"busqueda");
 
 
 
 if($registrosD!=false){
 	//Actualiza el estado del flujo
-	$cadena_sql = $this->sql->cadena_sql("actualizarFlujo",$parametro);
+	$cadena_sql = $this->sql->cadena_sql("actualizarFlujo",$parametros);
 	
 	$registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
 	if($registros!=false){
@@ -41,7 +42,7 @@ if($registrosD!=false){
 	}
 }else{
 	//crea registro en el flujo
-	$cadena_sql = $this->sql->cadena_sql("creaFlujo",$parametro);
+	$cadena_sql = $this->sql->cadena_sql("creaFlujo",$parametros);
 	$registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
 	if($registros!=false){
 	

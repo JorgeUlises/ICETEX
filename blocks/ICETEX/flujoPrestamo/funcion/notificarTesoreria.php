@@ -30,27 +30,30 @@ $mail = new phpmailer();
 
 
 
-$mail->Host     = "mail.udistrital.edu.co";
-$mail->FromName = "Correos Universidad Distrital";
-$mail->From     = "condor@udistrital.edu.co";
-$mail->Mailer   = "smtp";
+$mail->Host     = $this->miConfigurador->getVariableConfiguracion ( "mailHost" );
+$mail->FromName = $this->miConfigurador->getVariableConfiguracion ( "mailFromName" );
+$mail->From     = $this->miConfigurador->getVariableConfiguracion ( "mailFrom" );
+$mail->Mailer   = $this->miConfigurador->getVariableConfiguracion ( "mailMailer" );
 $mail->SMTPAuth = true;
-$mail->Username = "condor@udistrital.edu.co";
-$mail->Password = "CondorOAS2012";
-$mail->Timeout  = 120;
-$mail->Charset  = "utf-8";
+$mail->Username = $this->miConfigurador->getVariableConfiguracion ( "mailUsername" );
+$mail->Password = $this->miConfigurador->getVariableConfiguracion ( "mailPassword" );
+$mail->Timeout  = intval ($this->miConfigurador->getVariableConfiguracion ( "mailTimeout" ));
+$mail->Charset  = $this->miConfigurador->getVariableConfiguracion ( "mailCharset" );
+
+
+
 $mail->addAttachment($this->rutaArchivo,"resolucionIcetex.pdf");         // Add attachments
 
-
-$tema = "Recepcion Resolución Credito Estudiantes";
-$cuerpo = "Se ha cargado una resolucion de credito de estudiantes al sistema<br>el archivo PDF de la resolución se encuentra adjunto<br><br><b>El siguiente Listado se encuentra en la resolucion</b><br>";
-foreach($lista as $li){
-	$cuerpo .= $li."<br>";
+if($adjuntos!=''){
+	if(is_array($adjuntos)){
+		foreach($adjuntos as $adj) $mail->addAttachment($adj);;
+	}
+	else $mail->addAttachment($adjuntos);
 }
 
+if($tema=='') $tema = "Recepcion Resoluci�n Credito Estudiantes";
 
-//Prueba
-//$cuerpo .="<h1>ESTE CORREO ES UNA PRUEBA POR FAVOR NO LA TOME EN CUENTA</h1>";
+
 
 //Cuerpo del mensaje
 $mail->Body    = $cuerpo;
@@ -60,32 +63,33 @@ $mail->Subject = $tema;
 $mail->IsHTML(true);
 
 
-
-//Correos 
-$mail->AddAddress("jortiza@udistrital.edu.co");
-$mail->AddAddress("dcsanchez@udistrital.edu.co");
-//Correo Bienestar
-$mail->AddAddress('bienestarud@udistrital.edu.co');
-
-/*
-//correo prueba
-$mail->AddAddress("karrlyttos@hotmail.com");
-$mail->AddAddress("ingenierocromeroa@gmail.com");
-$mail->AddAddress("caromeroa@correo.udistrital.edu.co");
-*/
-
+$cadena_sql = $this->sql->cadena_sql("consultarEmailNombre",'financiera');
+$registros = $esteRecursoDB->ejecutarAcceso($cadena_sql,"busqueda");
+	
+if($registros&&count($registros)>0){
+	foreach ($registros as $reg){
+		$mail->AddAddress($reg[0]);
+	}
+}
+			
 
 
 if(!$mail->Send()) {
-	echo $this->lenguaje->getCadena("errorMail")."<br>";;
-	echo 'Mailer Error: ' . $mail->ErrorInfo;
+	//echo $this->lenguaje->getCadena("errorMail")."<br>";
+	//echo 'Mailer Error: ' . $mail->ErrorInfo;
+	$cadenaErr = $this->lenguaje->getCadena("errorMail")."<br>".'Mailer Error: ' . $mail->ErrorInfo;
+	$this->miMensaje->addMensaje("22",":".$cadenaErr,"error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 	
 	
 }
 $mail->ClearAllRecipients();
 
-$this->registroLog('NOTIFICAR TESORERIA');
+$temaRegistro = 'NOTIFICAR TESORERIA '.$temaRegistro.' ';
+
+$this->registroLog($temaRegistro);
 
 
 

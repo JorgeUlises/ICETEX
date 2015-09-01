@@ -17,30 +17,52 @@ if (!$esteRecursoDB) {
 	//Este se considera un error fatal
 	exit;
 }
+$datoBusqueda['codigo'] = $_REQUEST['valorConsulta'];
+if(!isset($_REQUEST['periodo'])){
+    //consultar periodo actual
+	$cadena_sqlD = $this->sql->cadena_sql("periodoActual",'');
+	$regPeriodo = $esteRecursoDB->ejecutarAcceso($cadena_sqlD,"busqueda");
+	$_REQUEST["periodo"] = $regPeriodo[0]['PERIODO'];
+}
+
+$datoBusqueda['anio'] = substr($_REQUEST['periodo'], 0, 4);
+$datoBusqueda['per'] = substr($_REQUEST['periodo'], 5, 1);
 
 //Revisa si existen recibos creados en el año y periodo en curso
-$cadena_sql = $this->sql->cadena_sql("consultarRecibosCreados",$_REQUEST['valorConsulta']);
+$cadena_sql = $this->sql->cadena_sql("consultarRecibosCreados",$datoBusqueda);
+
+
+
 $registros = $esteRecursoDB->ejecutarAcceso($cadena_sql,"busqueda");
 if($registros==false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoRecibo");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoRecibo");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("1","errorNoRecibo","information");
+	echo $this->miMensaje->getLastMensaje(); 
 	exit;
 }
 
 //Revisa si algun recibo se ha pagado
 $validaPago = false;
 foreach ($registros as $reg){
-	if($reg[1]=='S') $validaPago = true;
+	if($reg[1]=='S'){
+		$validaPago = true;
+		break;
+	}
 }
 
 if($validaPago==false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoReciboPagado");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoReciboPagado");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("2","errorNoReciboPagado","information");
+	echo $this->miMensaje->getLastMensaje();
 	exit;
 	
 }
+
+
 
 $this->estado = 3;
 
@@ -48,21 +70,7 @@ $this->estado = 3;
 $this->actualizarEstadoFlujo();
 
 echo json_encode(true);
-/*
-//Revisa si el credito esta aprobado
-$cadena_sql = $this->sql->cadena_sql("consultarCreditoAprobadoReintegro",$_REQUEST['valorConsulta']);
-$registros = $esteRecursoDB->ejecutarAcceso($cadena_sql,"busqueda");
-if($registros==false){
-	echo '<br><div style = "font-style:italic;text-align: center;"><b>';
-	echo $this->lenguaje->getCadena("esperaAprobacionCredito");
-	echo "</b><br>";
-	echo  '<input onclick="aprobarCredito('.$_REQUEST['valorConsulta'].')" type="button" value="'.$this->lenguaje->getCadena("botonAprobarCredito").'"></input>';
-	echo  '<input onclick="cancelarCredito('.$_REQUEST['valorConsulta'].')" type="button" value="'.$this->lenguaje->getCadena("botonCancelarCredito").'"></input>';
-	echo '</div>';
-	exit;
-}
-*/
-//$this->formularioResolucion();
+
 
 return true;
 

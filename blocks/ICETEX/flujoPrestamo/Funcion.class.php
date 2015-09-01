@@ -1,9 +1,11 @@
-<?php
+﻿<?php
 if(!isset($GLOBALS["autorizado"]))
 {
 	include("../index.php");
 	exit;
 }
+
+
 
 include_once("core/manager/Configurador.class.php");
 include_once("core/builder/InspectorHTML.class.php");
@@ -24,6 +26,7 @@ include("classes/mail/class.smtp.php");
 class FuncionflujoPrestamo
 {
 
+	var $mensaje;
 	var $sql;
 	var $funcion;
 	var $lenguaje;
@@ -59,6 +62,16 @@ class FuncionflujoPrestamo
 
 
 	}
+	
+	function procesarHoja($indexName,$objPHPExcelReader){
+		include($this->ruta."/funcion/procesarHoja.php");
+	}
+	
+	function validateDate($date)
+	{
+		$d = \DateTime::createFromFormat('d/m/y', $date);
+            return $d && $d->format('d/m/y') == $date;
+	}
 
 	function mostrarTabla()
 	{
@@ -75,23 +88,31 @@ class FuncionflujoPrestamo
 		include($this->ruta."/funcion/crearSolicitud.php");
 	}
 	
+	function crearSolicitudEstudiante()
+	{
+		include($this->ruta."/funcion/crearSolicitudEstudiante.php");
+	}
+	
 	function solicitarCredito()
 	{
 		include($this->ruta."/funcion/solicitarCredito.php");
 	}
 	
-	function desactivarRecibosActuales()
-	{
+	function solicitarCreditoEstudiante(){
+		include($this->ruta."/funcion/solicitarCreditoEstudiante.php");
+	}function cancelarCreditoEstudiante(){
+		include($this->ruta."/funcion/cancelarCreditoEstudiante.php");
+	}
+	
+	function desactivarRecibosActuales(){
 		include($this->ruta."/funcion/desactivarRecibosActuales.php");
 	}
 	
-	function separarMatricula()
-	{
+	function separarMatricula()	{
 		include($this->ruta."/funcion/separarMatricula.php");
 	}
 	
-	function actualizarEstadoFlujo()
-	{
+	function actualizarEstadoFlujo(){
 		include($this->ruta."/funcion/actualizarEstadoFlujo.php");
 	}
 	
@@ -126,12 +147,16 @@ class FuncionflujoPrestamo
 	function moverArchivo(){
 		include($this->ruta."/funcion/moverArchivo.php");
 	}
-	
-	
-	function notificarEstudiante($cuerpo, $tema , $adjuntos){
-		include($this->ruta."/funcion/notificarEstudiante.php");
+	function aprobarSolicitud(){
+		include($this->ruta."/funcion/aprobarSolicitud.php");
 	}
 	
+	function notificarEstudiante($cuerpo, $tema , $adjuntos='', $temaRegistro = ''){
+		include($this->ruta."/funcion/notificarEstudiante.php");
+	}
+	function notificacionVerificar(){
+		include($this->ruta."/funcion/notificacionVerificar.php");
+	}
 	function notificacionExitosa(){
 		include($this->ruta."/funcion/notificacionExitosa.php");
 	}
@@ -155,6 +180,9 @@ class FuncionflujoPrestamo
 	}
 	function mensajeReasignacion(){
 		include($this->ruta."/funcion/mensajeReasignacion.php");
+		
+	}function mensajePendiente(){
+		include($this->ruta."/funcion/mensajePendiente.php");
 		
 	}function mensajeReintegro(){
 		include($this->ruta."/funcion/mensajeReintegro.php");
@@ -183,15 +211,26 @@ class FuncionflujoPrestamo
 	}function procesarExcelCodigos(){
 		include($this->ruta."/funcion/procesarExcelCodigos.php");
 		
-	}function notificarTesoreria($lista){
+	}function notificarTesoreria($lista,$cuerpo ='', $tema='', $adjuntos='',$temaRegistro=''){
 		include($this->ruta."/funcion/notificarTesoreria.php");
 		
-	}function enviarMarcas(){
+	}function notificarBienestar($cuerpo ='', $tema='', $adjuntos='',$temaRegistro=''){
+		include($this->ruta."/funcion/notificarBienestar.php");
+		
+	}
+	function enviarMarcas(){
 		include($this->ruta."/funcion/registroMarcas.php");
 	}function procesarExcelMarcas(){
 		include($this->ruta."/funcion/procesarExcelMarcas.php");
 	}function registroLog($accion){
 		include($this->ruta."/funcion/registroLog.php");
+	}function revisarResolucionRegistrada(){
+		include($this->ruta."/funcion/revisarResolucionRegistrada.php");
+		
+	}function crearExcelTesoreriaResolucion($lista){
+		include($this->ruta."/funcion/crearExcelTesoreriaResolucion.php");
+		return $rutaExcel;
+		
 	}
 	
 	
@@ -210,6 +249,10 @@ class FuncionflujoPrestamo
 	
 	function crearRegistro($parametros){
 		include($this->ruta."/funcion/crearRegistro.php");
+	}
+	function identificacionACodigo($identificacion){
+		include($this->ruta."/funcion/identificacionACodigo.php");
+		return $codigo;
 	}
 
 	
@@ -236,7 +279,11 @@ class FuncionflujoPrestamo
 		//en la carpeta funcion
 
 		//Importante: Es adecuado que sea una variable llamada opcion o action la que guie el procesamiento:
-		
+		//
+		//echo $this->lenguaje->getCadena("errorNoCreaRecibo");
+		//$this->miMensaje->addMensaje("1","errorNoCreaRecibo","error");
+		//echo $this->miMensaje->getLastMensaje();
+		//exit;
 		
 		if(isset($_REQUEST["procesarAjax"])&&$_REQUEST["procesarAjax"]==true&&isset($_REQUEST["funcion"])){
 
@@ -262,7 +309,7 @@ class FuncionflujoPrestamo
 						$this->enviarMarcas();
 						break;
 					case "mensajeRecibos":
-						$this->notificacionRecibos();						
+						$this->notificacionVerificar();						
 						break;
 					case "consultarHistorico";
 					$this->consultarHistorico();
@@ -281,6 +328,12 @@ class FuncionflujoPrestamo
 						break;
 					case "solicitarCredito":
 							$this->solicitarCredito();
+							break;
+					case "solicitarCreditoEstudiante":
+							$this->solicitarCreditoEstudiante();
+							break;
+					case "cancelarCreditoEstudiante":
+							$this->cancelarCreditoEstudiante();
 							break;
 					case "editarDeudas":
 						
@@ -353,6 +406,7 @@ class FuncionflujoPrestamo
 	public function setLenguaje($lenguaje)
 	{
 		$this->lenguaje=$lenguaje;
+		$this->miMensaje->setLenguaje($lenguaje);
 	}
 
 	public function setFormulario($formulario){

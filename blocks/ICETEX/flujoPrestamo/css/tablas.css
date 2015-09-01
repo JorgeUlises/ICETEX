@@ -5,6 +5,7 @@ tr:hover {
   background-color:#aad4ff;
   cursor : pointer;
 }
+table { margin: auto; }
 
 .tablaGenerica {
 	margin:0px;padding:0px;

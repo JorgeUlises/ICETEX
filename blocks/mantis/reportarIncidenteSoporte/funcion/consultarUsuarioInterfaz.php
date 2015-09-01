@@ -54,10 +54,12 @@ $password = $cript->decodificar($registros[0]['usuarios_password']);
 ///Crear cliente SOAP
 $soap_options = array(
 		'trace'       => 1,     // traces let us look at the actual SOAP messages later
-		'exceptions'  => 1 ,
-		'classmap' => array('ProjectData' , 'projectData')
+		'exceptions'  => 1,
+		'proxy_host'  => '10.20.4.15',
+		'proxy_port'  => '3128'
 );
-$client = new SoapClient($wsdl,$soap_options);
+
+$client = new SoapClient($wsdl ,$soap_options);
 
 
 //Obtener lista de proyectos
@@ -80,13 +82,17 @@ try{
 
 $categorias = $client->mc_project_get_categories($user,$password,$idprj);
 
+
+
 $selectCategorias = '<select style="width:190px" class="ui-widget ui-widget-content ui-corner-all" name="categoria">';
 
 foreach ($categorias as $a=>$b){
 	$limpio = strtolower(preg_replace('/[^A-Za-z0-9\-]/', '', $b));
-	if(is_numeric(strpos($limpio,'atencin')) ){
+	
+	
+	//if(is_numeric(strpos($limpio,'atencin')) ){
 		$selectCategorias .= "<option value='".$b."'>".$b."</option>";
-	}
+	//}
 }
 $selectCategorias .="</select>";
 

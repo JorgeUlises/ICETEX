@@ -33,15 +33,35 @@ $parametros = array();
 $parametros["archivo"] = $this->rutaArchivo;
 $parametros["resolucion"] = $_REQUEST['resolucion'];
 $parametros["valorTotal"] = $_REQUEST['valorTotal'];
+$parametros["periodo"] = $_REQUEST['periodo'];
+$parametros["anio"] = substr($_REQUEST['periodo'], 0, 4);
+$parametros["per"] = substr($_REQUEST['periodo'], 5, 1);
 
 $listaError = array();
 $listaExito = array();
 
 $errorUpdate = false;
 $errorInsert = false;
+$errorModalidad = false;
+$errorFecha = false;
+$errorValor = false;
+$errorCodigo = false;
+$bandera =0;
 //procesa el listado registra la resolucion para cada uno del listado
-foreach ($this->listadoCodigos as $lista){
+
+if(!count($this->listadoCodigos)||count($this->listadoCodigos)<1){
 	
+	//echo '<br><br><div style="text-align: center;font-style: italic;color:red;">';
+	//echo "<br>No existe coincidencia entre el número de resolución ingresada y el archivo cargado<br>";
+	//echo "</div><br>";
+	
+	$this->miMensaje->addMensaje("43","errorResolucionCodigo","error");
+	echo $this->miMensaje->getLastMensaje();
+	
+	exit;
+}
+foreach ($this->listadoCodigos as $lista){
+	    $arrayp = array();
 		
 		if(isset($lista[0])) {
 			$parametros["codigo"] = $lista[0];
@@ -58,98 +78,257 @@ foreach ($this->listadoCodigos as $lista){
 			$_REQUEST['valorIndividual'] = 0;
 		}
 		$parametros['aprobado'] = 'S';
+		$parametros['identificacion'] = $lista[4];
+		
+		//Validar Codigo - Identificacion
+		if($parametros["codigo"]==0){
+			$errorCodigo = true;
+		}
 		
 		
-		//Se agrega el cambio ya que no se habia tenido en cuenta que para hacer la solicitud el 
-		//credito debe encontrarse aprobado
-		//Insert
-		//aprueba credito
-		$cadena_sql = $this->sql->cadena_sql("aprobarCredito",$parametros);
-		$registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
+		//validar que el valor individual sea numerico
+		if(!is_numeric($parametros["valorIndividual"])||strlen ($parametros["valorIndividual"])>7){
+			$errorValor = true;
+		}
 		
 		
-		if($registros!=false){
+		//validar Modalidad de Credito
+		if(strlen ($lista[2])<1){
+			$parametros['modalidadCredito'] = 0;
+			$errorModalidad = true;
+		}else $parametros['modalidadCredito'] = $lista[2];
+		
+		//validar Modalidad de Credito
+            $fecha = $lista[3] ;
+		if(!$this->validateDate($lista[3])){
+			$parametros['fechaCredito'] = 0;
+			$errorFecha = true;
+		}else $parametros['fechaCredito'] = $lista[3];
+		 
+		
+		
+		
+		if($errorValor==false&&$errorModalidad==false&&$errorFecha==false&&$errorCodigo==false){
+				//Se agrega el cambio ya que no se habia tenido en cuenta que para hacer la solicitud el 
+				//credito debe encontrarse aprobado
+				//Insert
+				
+				
+				//aprueba credito
+				$cadena_sql = $this->sql->cadena_sql("aprobarCredito",$parametros);
+				$registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
+				
+				
+				if($registros!=false){
+					$errorInsert = true ;
+				}
+				
+				//Update
+				//Reegistra en la resolucion
+				$cadena_sql = $this->sql->cadena_sql("registroResolucion",$parametros);
+				$registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
+				
+				
+				
+		
+				if($registros!=false){
+					$errorUpdate = true;
+				}
+				
+				
+				
+		}else{
+			
+			
 			$errorInsert = true ;
-		}
-		
-		//Update
-		//Reegistra en la resolucion
-		$cadena_sql = $this->sql->cadena_sql("registroResolucion",$parametros);
-		$registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
-		
-		
-		if($registros!=false){
 			$errorUpdate = true;
+			
+		
 		}
-		
-		$tema = "Estado aprobaciÃ³n CrÃ©dito ICETEX";
-		
-		
-		$cuerpo = "Buenos DÃ­as, <br><br><br>";
-		$cuerpo .="<br>Le informamos que el giro del ICETEX a su nombre ha llegado, por lo anterior debe acercarse a realizar el tramite correspondiente dependiendo de cada caso.";
-		$cuerpo .="<br><br>1. SI EL ESTUDIANTE NO HA CANCELADO A LA FECHA LA MATRICULA: para la legalizaciÃ³n de la matricula en el proyecto curricular debe realizar la solicitud del certificado de desembolso en tesorerÃ­a (7 piso)   y entregar los siguientes documentos:";
-		$cuerpo .="<br>   *. Carta de solicitud de certificado de desembolso dirigida a tesorerÃ­a general.";
-		$cuerpo .="<br>   *. Recibo de pago 2014-1 ";
-		$cuerpo .="<br>   *. ResoluciÃ³n del Icetex la cual se entrega en Bienestar Institucional ";
-		$cuerpo .="<br>   *. ConsignaciÃ³n Banco de Occidente, cuenta de ahorros No 23081461-8 cod 41 por valor de 5.100. ";
-		$cuerpo .="<br><br><br>2. SI EL ESTUDIANTE YA CANCELO A LA FECHA LA MATRICULA: Para el reintegro del dinero debe radicar en Bienestar Institucional los siguientes documentos:";
-		$cuerpo .="<br>   *. Carta de Solicitud dirigida al Ing. Jorge Federico Ramirez Escobar Dir de Bienestar Institucional. ";
-		$cuerpo .="<br>   *. Dos (2) Fotocopias del documento de identidad. ";
-		$cuerpo .="<br>   *. Fotocopia del recibo cancelado que se note el sello del Banco. ";
-		$cuerpo .="<br><br><br><br>Cualquier duda o inquietud pueden comunicarse.";
-		$cuerpo .="<br><br>Cordialmente,";
-		$cuerpo .="<br>SONIA YANQUEN M.<br>Bienestar Institucional";
-		$cuerpo .="<br>Horario de atenciÃ³n:<br>Lunes a Viernes 09:00 am a 12:30 pm y 02:00 pm a 05:00 pm.";
-		
-		
-		//Aviso de prueba
-		$cuerpo .="<h1>SI RECIBE ESTE CORREO POR FAVOR OBVIELO ES UNA PRUEBA</h1>";
-		
-		$this->notificarEstudiante($cuerpo, $tema , $this->rutaArchivo);
 		
 		$_REQUEST["valorConsulta"] = $_REQUEST["codigo"];
 		
 		
-		
-		$this->actualizarEstadoFlujo();
-		
 		if($errorUpdate==false&&$errorInsert==false){
-			array_push($listaExito,$parametros["codigo"]);
+			            $listaExito[$bandera]['IDENTIFICACION'] = $parametros['identificacion'];
+                        $listaExito[$bandera]['CODIGO']=$parametros["codigo"];
+                        $listaExito[$bandera]['valorResolucionIcetex'] = $parametros["valorIndividual"];
+                        
+                        //revisar si la matricula es diferida
+                        
+                        $cadena_sqlRefS = $this->sql->cadena_sql("consultarPagoReferenciaMatricula",$parametros);
+                        $registrosRefS = $esteRecursoDB->ejecutarAcceso($cadena_sqlRefS,"busqueda");
+                        
+                        if($registrosRefS==false){
+                        		
+                        	$errorConsulta = true;
+                        		
+                        }
+                        
+                        
+                        //Valor que se le devuelve al estudiante
+                        $listaExito[$bandera]['valorPago'] = 0;
+                        
+                        //Valor que el estduainte pago a al universidad 
+                        $listaExito[$bandera]['valorPagoEstudiante'] = 0;
+                        
+                        //Valor que le estduainte debe pagar
+                        $listaExito[$bandera]['valorDebePago'] = 0;
+                        
+                        //Valor Matrícula
+                        $listaExito[$bandera]['valorMatricula'] = 0;
+                        
+                        
+                        $valorPagado = 0;
+                        
+                        //Si es matricula diferida
+                        $listaExito[$bandera]['diferido'] = 'no';
+                        if(count($registrosRefS)>1)	$listaExito[$bandera]['diferido'] = 'si';
+                        
+                        //DIFERIDO
+                        
+                        	foreach ($registrosRefS as $reg){
+                        
+                        		$listaExito[$bandera]['valorMatricula']+= $reg['EMA_VALOR'];
+                        		if($reg['EMA_PAGO'] == 'S'){
+                        			$valorPagado += $reg['EMA_VALOR'];
+                        			
+                        			$listaExito[$bandera]['valorPagoEstudiante'] += $reg['EMA_VALOR'];
+                        		}
+                        	}
+                        	
+                        	$sumaPagos = 0;
+                        	$sumaPagos = $listaExito[$bandera]['valorPagoEstudiante'] + $listaExito[$bandera]['valorResolucionIcetex']; 
+                        	
+                        	if($sumaPagos > $listaExito[$bandera]['valorMatricula']){
+                        		$listaExito[$bandera]['valorPago'] = $sumaPagos - $listaExito[$bandera]['valorMatricula'];  
+                        	}
+                        	
+                        	if($sumaPagos < $listaExito[$bandera]['valorMatricula']){
+                        		$listaExito[$bandera]['valorDebePago'] = $listaExito[$bandera]['valorMatricula'] -  $sumaPagos;
+                        		
+                        	}
+                        	
+                        	                        
+                   
+                        
+                 $bandera++;
 		}else{
-			$arrayp = array();
-			if($errorInsert!=false) array_push($arrayp,array($parametros["codigo"],'Insertar'));
-			if($errorUpdate!=false) array_push($arrayp,array($parametros["codigo"],'Actualizar'));
+			
+			
+			if($errorValor!=false) array_push($arrayp,array($parametros["codigo"],'Valor individual no se encuentra o inválido',$parametros['identificacion']));
+			if($errorModalidad!=false) array_push($arrayp,array($parametros["codigo"],'Modalidad no se encuentra o inválida',$parametros['identificacion']));
+			if($errorFecha!=false) array_push($arrayp,array($parametros["codigo"],'Fecha, formato válido DD/MM/YY',$parametros['identificacion']." ".$fecha." fecha valida en formato DD/MM/YY"));
+			if($errorCodigo!=false) array_push($arrayp,array($parametros["codigo"],'Identificación no se encuentra o inválida, revise que el documento se encuentre registrado en el sistema',$parametros['identificacion']));
+			if($errorInsert!=false) array_push($arrayp,array($parametros["codigo"],'Insertar, revise si ya se registró resolución para el estudiante',$parametros['identificacion']));
+			if($errorUpdate!=false) array_push($arrayp,array($parametros["codigo"],'Actualizar',$parametros['identificacion']));
+			
 			array_push($listaError,$arrayp );
 				
 		}
-
-
+		
 		$errorUpdate = false;
 		$errorInsert = false;
+		$errorModalidad = false;
+		$errorFecha = false;
+		$errorValor = false;
+		$errorCodigo = false;
+}
+
+
+//Error
+if(count($listaError)>0){
+	
+	echo '<div ><p>';
+	echo '<p >'.$this->lenguaje->getCadena("errorRegistroResolucion")."</p> <br>";
+	echo '<div style="text-align: center;">';
+	foreach($listaError as $li){
+		echo '<b>'.$li[0][0]."</b> - <b>".$li[0][2]."</b>: ".$li[0][1]."<br>";
+	}
+	echo "</p></div></div><br><br>";
 }
 
 //Exitoso
-if(count($listaExito)>0){
-	echo '<div style="text-align: center;color:green"><p><b>';
-	echo $this->lenguaje->getCadena("exitoRegistroResolucion")." <br>";
-	foreach($listaExito as $li){
-		echo $li."<br>";
-	}
-	echo "</b></p></div><br>";
-}
-			
-			
-//Error
-if(count($listaError)>0){
-	echo '<div style="text-align: center;color:red"><p><b>';
-	echo $this->lenguaje->getCadena("errorRegistroResolucion")." <br>";
-	foreach($listaError as $li){
-		echo $li[0][0]." - ".$li[0][1]."<br>";
-	}
-	echo "</b></p></div><br><br>";
-}
 
-$this->notificarTesoreria($listaExito);
+if(count($listaExito)>0){
+	
+	$diferencias = '';
+	$diferencias .= '<div style="text-align: center;"><p>';
+	$diferencias .= '<p >'.$this->lenguaje->getCadena("exitoRegistroResolucion")." </p><br>";
+	$diferencias .= '<div style="text-align: center;">';
+	$diferencias .= '<table style="margin: 0 auto;">';
+	
+	//elemntos notificacion
+	$tema = "Estado aprobación Crédito ICETEX";
+	
+	$cadena_sql = $this->sql->cadena_sql("consultarTextoNotificacion",$parametros);
+	$registrosEmail = $esteRecursoDB->ejecutarAcceso($cadena_sql,"busqueda");
+	
+	
+	if($registrosEmail==false){
+		//echo "no es posible consultar email";
+		$this->miMensaje->addMensaje("46","errorConsultarEmail","error");
+		echo $this->miMensaje->getLastMensaje();
+		
+		exit;
+	
+	}
+	
+	
+	
+	
+	foreach($listaExito as $li){
+		
+		$cuerpo = $registrosEmail[0][0];
+		
+		
+		$_REQUEST["valorConsulta"] = $li['CODIGO'];
+		$_REQUEST["codigo"] = $li['CODIGO'];
+		
+		$parametros['codigo'] = $li['CODIGO'];
+		
+		$diferencias .= '<tr><td>'.$li['CODIGO'].'-'.$li['IDENTIFICACION'].'</td><td>';
+		
+		
+		$diferencias .= 'El Valor de la matrícula es <b>'.$li['valorMatricula'].'</b>';
+		$diferencias .= '<br>El estudiante consignó <b>'.$li['valorPagoEstudiante'].'</b>';
+		$diferencias .= '<br>El Icetex Giró <b>'.$li['valorResolucionIcetex'].'</b>';
+		$diferencias .= '<br>El estudiante debe pagar a la universidad <b>'.$li['valorDebePago'].'</b>';
+		
+		
+
+		$diferencias .= "</td></tr>";
+		
+		
+		$this->notificarEstudiante($cuerpo, $tema , '', 'RESOLUCION ICETEX');
+		$this->actualizarEstadoFlujo();
+		
+	}
+	
+	$diferencias .= "</table></div></div>";
+	
+	
+	
+	echo $diferencias;
+	
+	
+	$rutaExcel = $this->crearExcelTesoreriaResolucion($listaExito);
+	
+	$temaT = "Recepcion Resolución Crédito Estudiantes";
+	$cuerpoT = "<p>Se ha cargado una resolucion de crédito de estudiantes al sistema<br>el archivo PDF de la resolución se encuentra adjunto<br><br><b>El siguiente Listado se encuentra en la resolucion</b></p><br>";
+	$cuerpoT .= $diferencias;
+	
+	
+	
+	$this->notificarTesoreria($listaExito,$cuerpoT,$temaT,$rutaExcel,'CARGA RESOLUCION');
+	
+}
+			
+			
+
+
+
+
 
 exit;
 

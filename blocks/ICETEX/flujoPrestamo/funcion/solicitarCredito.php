@@ -20,43 +20,68 @@ if (!$esteRecursoDB) {
 }
 
 //Asigna el estado por defecto al cual se va acambiar
-$this->estado = 1;
+$this->estado = 2;
 
 
 //Revisa si existen recibos creados en el año y periodo en curso
-$cadena_sql = $this->sql->cadena_sql("consultarRecibosCreados",$_REQUEST['valorConsulta']);
+$datoBusqueda['codigo'] = $_REQUEST['valorConsulta'];
+if(!isset($_REQUEST['periodo'])){
+    //consultar periodo actual
+	$cadena_sqlD = $this->sql->cadena_sql("periodoActual",'');
+	$regPeriodo = $esteRecursoDB->ejecutarAcceso($cadena_sqlD,"busqueda");
+	$_REQUEST["periodo"] = $regPeriodo[0]['PERIODO'];
+}
+
+$datoBusqueda['anio'] = substr($_REQUEST['periodo'], 0, 4);
+$datoBusqueda['per'] = substr($_REQUEST['periodo'], 5, 1);
+
+$cadena_sql = $this->sql->cadena_sql("consultarRecibosCreados",$datoBusqueda);
 
 $registros = $esteRecursoDB->ejecutarAcceso($cadena_sql,"busqueda");
 
 if($registros==false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoRecibo");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoRecibo");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("33","errorNoRecibo","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
 
 //Revisa si algun recibo se ha pagado
 $validaPago = false;
 foreach ($registros as $reg){
-	if($reg[1]=='S') $validaPago = true;
+	if($reg[1]=='S'){
+		$validaPago = true;
+		break;
+	}
 }
 
 
 
 
 //Si se pago alguno el estado a actualizar es el 2
-if($validaPago ==true) $this->estado = 2;
+if($validaPago ==true){
+	$this->estado = 2;
+	$this->actualizarEstadoFlujo();
+	echo json_encode(true);
+	exit;
+}
 
 //Se obtienen los valores para clonar la fila
 //
 //1. se consulta la suma de las matriculas ordinarias y extra ordinarias+
-$cadena_sqlS = $this->sql->cadena_sql("consultarValorMatricula",$_REQUEST['valorConsulta']);
+$cadena_sqlS = $this->sql->cadena_sql("consultarValorMatricula",$datoBusqueda);
 $registrosS = $esteRecursoDB->ejecutarAcceso($cadena_sqlS,"busqueda");
 
 if($registrosS==false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoConsulta");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoConsulta");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("34","errorNoConsulta","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
 $this->valorOrdinaria = $registrosS[0][0] ;
@@ -68,9 +93,13 @@ $cadena_sqlF = $this->sql->cadena_sql("consultarFechaMatricula",$_REQUEST['valor
 $registrosF = $esteRecursoDB->ejecutarAcceso($cadena_sqlF,"busqueda");
 
 if($registrosF==false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoConsultaFechas");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoConsultaFechas");
+	//echo "</b></p></div>";
+	
+	$this->miMensaje->addMensaje("35","errorNoConsultaFechas","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
 
@@ -90,9 +119,13 @@ $hoy = new DateTime('now');
 $modulosEstudiantes = array(51,52);
 
 if($fechaOrdinaria<$hoy&&in_array($_REQUEST["modulo"], $modulosEstudiantes)){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorFechaVencida");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorFechaVencida");
+	//echo "</b></p></div>";
+	
+	$this->miMensaje->addMensaje("36","errorFechaVencida","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
 
@@ -115,9 +148,13 @@ if ($fechaOrdinaria<$hoy&&$_REQUEST["modulo"]==68){
 	$registrosFes = $esteRecursoDB->ejecutarAcceso($cadena_sqlFes,"busqueda");
 	
 	if($registrosFes==false){
-		echo '<div style="text-align: center"><p><b>';
-		echo $this->lenguaje->getCadena("errorNoConsultaFestivos");
-		echo "</b></p></div>";
+		//echo '<div style="text-align: center"><p><b>';
+		//echo $this->lenguaje->getCadena("errorNoConsultaFestivos");
+		//echo "</b></p></div>";
+		
+		$this->miMensaje->addMensaje("37","errorNoConsultaFestivos","error");
+		echo $this->miMensaje->getLastMensaje();
+		
 		exit;
 	}
 	$listaFestivos = array();
@@ -141,10 +178,6 @@ if ($fechaOrdinaria<$hoy&&$_REQUEST["modulo"]==68){
 	}
 	
 	
-	
-	
-	
-	
 }
 
 
@@ -155,9 +188,13 @@ $registrosRefS = $esteRecursoDB->ejecutarAcceso($cadena_sqlRefS,"busqueda");
 
 if($registrosRefS==false){
 	
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoConsultaReferencias");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoConsultaReferencias");
+	//echo "</b></p></div>";
+	
+	$this->miMensaje->addMensaje("39","errorNoConsultaReferencias","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
 
@@ -169,14 +206,14 @@ $this->proyectoCurricular = $registrosF[0][2] ;
 $this->anoPago = $registrosF[0][3] ;
 $this->periodoPago = $registrosF[0][4] ;
 
-//Desactiva recibos actuales
-$this->desactivarRecibosActuales();
 
-
-
-
-//Crear Recibos Nuevos separados matricula y recibo de pago
-$this->separarMatricula();
+if (!$validaPago){
+	//Desactiva recibos actuales
+	$this->desactivarRecibosActuales();
+	
+	//Crear Recibos Nuevos separados matricula y recibo de pago
+	$this->separarMatricula();
+}
 
 //Actualiza Estado del flujo
 $this->actualizarEstadoFlujo();

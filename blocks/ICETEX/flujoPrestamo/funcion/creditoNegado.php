@@ -15,10 +15,12 @@ if(!isset($GLOBALS["autorizado"]))
 
 
 
-	echo '<br><div style = "font-style:italic;text-align: center;"><b>';
-	echo $this->lenguaje->getCadena("creditoNegado");
-	echo "</b><br>";
-	echo  '</div>';
+	//echo '<br><div style = "font-style:italic;text-align: center;"><b>';
+	//echo $this->lenguaje->getCadena("creditoNegado");
+	//echo "</b><br>";
+	//echo  '</div>';
+    $this->miMensaje->addMensaje("8","creditoNegado","error");
+    echo $this->miMensaje->getLastMensaje();
 	exit;
 
 

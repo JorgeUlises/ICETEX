@@ -11,10 +11,14 @@ if(!isset($GLOBALS["autorizado"]))
 
 
 
-echo '<div style="text-align: center;font-style: italic;font-size:1.2em">';
-echo "Â¿El estudiante desea solicitar Reintegro?<br>";
-echo '<input type= "button" onclick="registroReintegro('.$_REQUEST['valorConsulta'].');" value="'.$this->lenguaje->getCadena("solicitarReintegro").'">';
-echo "</div><br>";
+//echo '<div style="text-align: center;font-style: italic;font-size:1.2em">';
+//echo "¿El estudiante desea solicitar Reintegro?<br>";
+
+$this->miMensaje->addMensaje("39","solicitarReintegro","information");
+echo $this->miMensaje->getLastMensaje();
+
+echo '<input type= "button" onclick="registroReintegro('.$_REQUEST['valorConsulta'].',\''.$_REQUEST['periodo'].'\');" value="'.$this->lenguaje->getCadena("solicitarReintegro").'">';
+//echo "</div><br>";
 
 
 

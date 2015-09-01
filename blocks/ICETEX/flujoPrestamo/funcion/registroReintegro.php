@@ -19,7 +19,12 @@ if (!$esteRecursoDB) {
     exit;
 }
 
-
+if(!isset($_REQUEST['periodo'])){
+	//consultar periodo actual
+	$cadena_sqlD = $this->sql->cadena_sql("periodoActual",'');
+	$regPeriodo = $esteRecursoDB->ejecutarAcceso($cadena_sqlD,"busqueda");
+	$_REQUEST["periodo"] = $regPeriodo[0]['PERIODO'];
+}
 
 //Revisa si existen recibos creados en el año y periodo en curso
 $cadena_sql = $this->sql->cadena_sql("actualizaReintegro",$_REQUEST['valorConsulta']);
@@ -28,9 +33,13 @@ $registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
 
 
 if($registros!=false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoRegistroReintegro");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoRegistroReintegro");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("27","errorNoRegistroReintegro","error");
+	echo $this->miMensaje->getLastMensaje();
+	
+	
 	exit;
 }
 

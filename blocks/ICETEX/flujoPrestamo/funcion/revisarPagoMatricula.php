@@ -20,13 +20,19 @@ if (!$esteRecursoDB) {
 }
 
 
+$datosBusqueda['codigo']=$_REQUEST['valorConsulta'];
+$datosBusqueda['anio'] = substr($_REQUEST['periodo'], 0, 4);
+$datosBusqueda['per'] = substr($_REQUEST['periodo'], 5, 1);
 
-$cadena_sql = $this->sql->cadena_sql("consultarPagoReferenciaMatricula",$_REQUEST['valorConsulta']);
+$cadena_sql = $this->sql->cadena_sql("consultarPagoReferenciaMatricula",$datosBusqueda);
 $registros = $esteRecursoDB->ejecutarAcceso($cadena_sql,"busqueda");
 if($registros==false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoConsulta");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoConsulta");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("28","errorNoConsulta","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
 

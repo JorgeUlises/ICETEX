@@ -1,5 +1,25 @@
 @CHARSET "ISO-8859-1";
 
+.icetextTexto{
+	color:blue;
+	background-color:white;
+}
+
+.importante{
+	color:red;
+	
+}
+
+.noHover:hover{
+	background-color :inherit;
+	
+}
+
+.noHover{
+	background-color :inherit;
+	margin: auto; 
+}
+
 input[type="text"], textarea {
 
   background-color : CCE1E8; 

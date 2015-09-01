@@ -10,9 +10,12 @@ if(!isset($GLOBALS["autorizado"]))
  */
 
 
-echo '<br><br><div style="text-align: center;font-style: italic;color:#FF0000;">';
-echo "No se registra resolución aun.<br>Es Necesario cargar una resolución asociada al estudiante primero";
-echo "</div><br>";
+//echo '<br><br><div style="text-align: center;font-style: italic;color:#FF0000;">';
+//echo "No se registra resolución aun.<br>Es Necesario cargar una resolución asociada al estudiante primero";
+//echo "</div><br>";
+
+$this->miMensaje->addMensaje("16","mensajeResolucion","information");
+echo $this->miMensaje->getLastMensaje();
 
 
 

@@ -19,20 +19,17 @@ if (!$esteRecursoDB) {
     exit;
 }
 
-
-
-
-
-
-
 //Se debe consultar primero el valor del seguro y otras referencias diferentes a la matricula
 
 $cadena_sqlRefM = $this->sql->cadena_sql("consultarReferenciaMatricula",$_REQUEST['valorConsulta']);
 $registrosRefM = $esteRecursoDB->ejecutarAcceso($cadena_sqlRefM,"busqueda");
 if($registrosRefM==false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoConsulta");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoConsulta");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("29","errorNoConsulta","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
 
@@ -69,9 +66,12 @@ $cadena_sql = $this->sql->cadena_sql("separarMatriculaSeguro",$parametros);
 $registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
 
 if($registros!=false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoCreaRecibo");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoCreaRecibo");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("30","errorNoCreaRecibo","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
 
@@ -87,9 +87,12 @@ foreach($registrosRefS as $reg){
 	$registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
 	
 	if($registros!=false){
-		echo '<div style="text-align: center"><p><b>';
-		echo $this->lenguaje->getCadena("errorNoCreaRecibo");
-		echo "</b></p></div>";
+		//echo '<div style="text-align: center"><p><b>';
+		//echo $this->lenguaje->getCadena("errorNoCreaRecibo");
+		//echo "</b></p></div>";
+		$this->miMensaje->addMensaje("31","errorNoCreaRecibo","error");
+		echo $this->miMensaje->getLastMensaje();
+		
 		exit;
 	}
 }	
@@ -101,9 +104,12 @@ $cadena_sql = $this->sql->cadena_sql("separarMatriculaNoSeguro",$parametros);
 $registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
 
 if($registros!=false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoCreaRecibo");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoCreaRecibo");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("32","errorNoCreaRecibo","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
 
@@ -114,12 +120,15 @@ $cadena_sql = $this->sql->cadena_sql("separarMatriculaNoSeguroReferencia",$param
 $registros = $esteRecursoDB->ejecutarAcceso($cadena_sql);
 
 if($registros!=false){
-	echo '<div style="text-align: center"><p><b>';
-	echo $this->lenguaje->getCadena("errorNoCreaRecibo");
-	echo "</b></p></div>";
+	//echo '<div style="text-align: center"><p><b>';
+	//echo $this->lenguaje->getCadena("errorNoCreaRecibo");
+	//echo "</b></p></div>";
+	$this->miMensaje->addMensaje("32","errorNoCreaRecibo","error");
+	echo $this->miMensaje->getLastMensaje();
+	
 	exit;
 }
-$this->registroLog('SEPARAR '.$_REQUEST['valorConsulta']);
+$this->registroLog('SEPARAR MATRICULA '.$_REQUEST['valorConsulta']);
 
 return true;
 

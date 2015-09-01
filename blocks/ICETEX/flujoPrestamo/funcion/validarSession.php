@@ -42,7 +42,11 @@ if(isset($_REQUEST['sessionId'])){
 	}
 	$miSesion->setTiempoExpiracion(1409078635);
 }else{
-	echo json_encode($this->lenguaje->getCadena("errorUsuario"));
+	//echo json_encode($this->lenguaje->getCadena("errorUsuario"));
+	
+	$this->miMensaje->addMensaje("41","errorUsuario","error");
+	echo json_encode($this->miMensaje->getLastMensaje());
+	
 	exit;
 }
 

@@ -74,8 +74,15 @@ if($registros==false){
 $user = $registros[0]['usuarios_mantis'];
 $password = $cript->decodificar($registros[0]['usuarios_password']);
 
-//inicia cliente soap
-$client = new SoapClient($wsdl);
+///Crear cliente SOAP
+$soap_options = array(
+		'trace'       => 1,     // traces let us look at the actual SOAP messages later
+		'exceptions'  => 1,
+		'proxy_host'  => '10.20.4.15',
+		'proxy_port'  => '3128'
+);
+
+$client = new SoapClient($wsdl ,$soap_options);
 
 
 //obtiene el status cerrado
